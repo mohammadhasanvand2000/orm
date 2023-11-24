@@ -12,4 +12,5 @@ class TestProductQueryset(TestCase):
 
     def test_in_stock(self):
         products_list = list(Product.objects.in_stock().values_list('id', flat=True))
+        print(products_list)
         self.assertEqual(products_list, [1, 2])

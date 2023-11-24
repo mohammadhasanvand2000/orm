@@ -11,24 +11,29 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from celery import Celery
+from celery.schedules import crontab
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend_interview.settings')
+
+celery_app = Celery('backend_interview')
+
+celery_app.config_from_object('django.conf:settings', namespace='CELERY')
+
+celery_app.autodiscover_tasks()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-tn@k*rdmiem+3k#$3f+8!&i@@gl%xfz!(kn8c&ogpj^*i($#os'
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
 
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -126,3 +131,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+CELERY_BEAT_SCHEDULE = {
+    'send_daily_sales_report': {
+        'task': 'order.tasks.send_daily_sales_report',
+        'schedule': crontab(hour=23, minute=30),  
+    },
+}
